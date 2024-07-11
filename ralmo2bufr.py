@@ -41,7 +41,7 @@ def bufr_encode():
 
     # Create the structure of the data section
     codes_set_array(ibufr, 'unexpandedDescriptors', ivalues)
-
+    # data header section
     codes_set(ibufr, 'wigosIdentifierSeries', 0)
     codes_set(ibufr, 'wigosIssuerOfIdentifier', 20000)
     codes_set(ibufr, 'wigosIssueNumber', 0)
@@ -62,6 +62,8 @@ def bufr_encode():
     codes_set(ibufr, 'observingPlatformManufacturerModel','RALMO')
     codes_set(ibufr, '#2#timeSignificance', 2)
     codes_set(ibufr, 'timePeriod', 1800)
+    # data profile section
+    # first level
     codes_set(ibufr, '#1#height', 600)
     codes_set(ibufr, '#2#latitude', 4.681000000000000227e+01)
     codes_set(ibufr, '#2#longitude', 6.940000000000000391e+00)
@@ -79,6 +81,7 @@ def bufr_encode():
     codes_set(ibufr, '#4#measurementUncertaintyExpression', 31)
     codes_set(ibufr, '#4#measurementUncertaintySignificance', 31)
     codes_set(ibufr, '#1#verticalResolution', 30)
+    # second level
     codes_set(ibufr, '#2#height', 5000)
     codes_set(ibufr, '#3#latitude', 4.681000000000000227e+01)
     codes_set(ibufr, '#3#longitude', 6.940000000000000391e+00)
