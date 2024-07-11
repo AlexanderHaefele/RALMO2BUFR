@@ -8,10 +8,13 @@ from eccodes import *
 import pandas
 
 
-def bufr_encode(data):
+def bufr_encode(data,outfile):
     
     # set the number of levels to encode
     levels = data.hum.size
+
+    # create time information
+    dt = pandas.to_datetime(data.mytime[data.index[0]])
     
     # BUFR structure
     ibufr = codes_bufr_new_from_samples('BUFR4')
@@ -27,12 +30,12 @@ def bufr_encode(data):
     codes_set(ibufr, 'dataSubCategory', 0)
     codes_set(ibufr, 'masterTablesVersionNumber', 35)
     codes_set(ibufr, 'localTablesVersionNumber', 0)
-    codes_set(ibufr, 'typicalYear', 2024)
-    codes_set(ibufr, 'typicalMonth', 7)
-    codes_set(ibufr, 'typicalDay', 4)
-    codes_set(ibufr, 'typicalHour', 12)
-    codes_set(ibufr, 'typicalMinute', 30)
-    codes_set(ibufr, 'typicalSecond', 0)
+    codes_set(ibufr, 'typicalYear', dt.year)
+    codes_set(ibufr, 'typicalMonth', dt.month)
+    codes_set(ibufr, 'typicalDay', dt.day)
+    codes_set(ibufr, 'typicalHour', dt.hour)
+    codes_set(ibufr, 'typicalMinute', dt.minute)
+    codes_set(ibufr, 'typicalSecond', dt.second)
     codes_set(ibufr, 'numberOfSubsets', 1)
     codes_set(ibufr, 'observedData', 1)
     codes_set(ibufr, 'compressedData', 0)
@@ -58,11 +61,11 @@ def bufr_encode(data):
     codes_set(ibufr, '#1#longitude', 6.940000000000000391e+00)
     codes_set(ibufr, 'heightOfStationGroundAboveMeanSeaLevel', 4.910000000000000000e+02)
     codes_set(ibufr, '#1#timeSignificance', 29)
-    codes_set(ibufr, 'year', 2024)
-    codes_set(ibufr, 'month', 7)
-    codes_set(ibufr, 'day', 4)
-    codes_set(ibufr, 'hour', 12)
-    codes_set(ibufr, 'minute', 30)
+    codes_set(ibufr, 'year', dt.year)
+    codes_set(ibufr, 'month', dt.month)
+    codes_set(ibufr, 'day', dt.day)
+    codes_set(ibufr, 'hour', dt.hour)
+    codes_set(ibufr, 'minute', dt.minute)
     codes_set(ibufr, 'upperAirRemoteSensingInstrumentType', 6)
     codes_set(ibufr, 'uniqueIdentifierForProfile','PAYRL')
     codes_set(ibufr, 'observingPlatformManufacturerModel','RALMO')
@@ -91,7 +94,7 @@ def bufr_encode(data):
     # Encode the keys back in the data section
     codes_set(ibufr, 'pack', 1)
 
-    outfile = open('outfile.bufr', 'wb')
+    outfile = open(outfile, 'wb')
     codes_write(ibufr, outfile)
     print ("Created output BUFR file 'outfile.bufr'")
     codes_release(ibufr)
@@ -100,14 +103,14 @@ def bufr_encode(data):
 def main():
     
     # read csv file
-    csvfile = 'ralmo20240709000000.txt'
+    csvfile = 'ralmo20240709060000.txt'
     # read data
-    data = pandas.read_csv(csvfile,skiprows=3,sep='|',na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
+    data = pandas.read_csv(csvfile,skiprows=3,sep='|',parse_dates={'mytime':[1]},na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
     # remove nan's in hum
     data = data[data.hum.notna() & data.temp.notna()]
 
     try:
-        bufr_encode(data)
+        bufr_encode(data,'ralmo20240709060000.bufr')
     except CodesInternalError as err:
         traceback.print_exc(file=sys.stderr)
         return 1
