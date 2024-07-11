@@ -11,7 +11,7 @@ import pandas
 def bufr_encode(data):
     
     # set the number of levels to encode
-    levels = 5
+    levels = data.hum.size
     
     # BUFR structure
     ibufr = codes_bufr_new_from_samples('BUFR4')
@@ -70,23 +70,23 @@ def bufr_encode(data):
     codes_set(ibufr, 'timePeriod', 1800)
     # data profile section
     for i in range(levels):
-        codes_set(ibufr, '#'+str(i+1)+'#height', data.level[i])
+        codes_set(ibufr, '#'+str(i+1)+'#height', data.level[data.index[i]])
         codes_set(ibufr, '#'+str(i+2)+'#latitude', 4.681000000000000227e+01)
         codes_set(ibufr, '#'+str(i+2)+'#longitude', 6.940000000000000391e+00)
         codes_set(ibufr, '#'+str(i+1)+'#qualityOfFollowingValue', 0)
-        codes_set(ibufr, '#'+str(2*i+1)+'#mixingRatio', data.hum[i]/1000)
+        codes_set(ibufr, '#'+str(2*i+1)+'#mixingRatio', data.hum[data.index[i]]/1000)
         codes_set(ibufr, '#'+str(4*i+1)+'#measurementUncertaintyExpression', 0)
         codes_set(ibufr, '#'+str(4*i+1)+'#measurementUncertaintySignificance', 0)
-        codes_set(ibufr, '#'+str(2*i+2)+'#mixingRatio', data.hum_U[i]/1000)
+        codes_set(ibufr, '#'+str(2*i+2)+'#mixingRatio', data.hum_U[data.index[i]]/1000)
         codes_set(ibufr, '#'+str(4*i+2)+'#measurementUncertaintyExpression', 31)
         codes_set(ibufr, '#'+str(4*i+2)+'#measurementUncertaintySignificance', 31)
-        codes_set(ibufr, '#'+str(2*i+1)+'#airTemperature', data.temp[i])
+        codes_set(ibufr, '#'+str(2*i+1)+'#airTemperature', data.temp[data.index[i]])
         codes_set(ibufr, '#'+str(4*i+3)+'#measurementUncertaintyExpression', 0)
         codes_set(ibufr, '#'+str(4*i+3)+'#measurementUncertaintySignificance', 0)
-        codes_set(ibufr, '#'+str(2*i+2)+'#airTemperature', data.temp_U[i])
+        codes_set(ibufr, '#'+str(2*i+2)+'#airTemperature', data.temp_U[data.index[i]])
         codes_set(ibufr, '#'+str(4*i+4)+'#measurementUncertaintyExpression', 31)
         codes_set(ibufr, '#'+str(4*i+4)+'#measurementUncertaintySignificance', 31)
-        codes_set(ibufr, '#'+str(i+1)+'#verticalResolution', data.vert_res[i])
+        codes_set(ibufr, '#'+str(i+1)+'#verticalResolution', data.vert_res[data.index[i]])
     
     # Encode the keys back in the data section
     codes_set(ibufr, 'pack', 1)
@@ -103,7 +103,9 @@ def main():
     csvfile = 'ralmo20240709000000.txt'
     # read data
     data = pandas.read_csv(csvfile,skiprows=3,sep='|',na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
-    
+    # remove nan's in hum
+    data = data[data.hum.notna() & data.temp.notna()]
+
     try:
         bufr_encode(data)
     except CodesInternalError as err:
