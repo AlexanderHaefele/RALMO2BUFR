@@ -5,11 +5,17 @@ from __future__ import print_function
 import traceback
 import sys
 from eccodes import *
+import pandas
 
 
-def bufr_encode():
+def bufr_encode(data):
+    
+    # set the number of levels to encode
+    levels = 1
+    
+    # BUFR structure
     ibufr = codes_bufr_new_from_samples('BUFR4')
-    ivalues = (2 ,)
+    ivalues = (levels ,)
     codes_set_array(ibufr, 'inputExtendedDelayedDescriptorReplicationFactor', ivalues)
     codes_set(ibufr, 'edition', 4)
     codes_set(ibufr, 'masterTableNumber', 0)
@@ -63,42 +69,25 @@ def bufr_encode():
     codes_set(ibufr, '#2#timeSignificance', 2)
     codes_set(ibufr, 'timePeriod', 1800)
     # data profile section
-    # first level
-    codes_set(ibufr, '#1#height', 600)
-    codes_set(ibufr, '#2#latitude', 4.681000000000000227e+01)
-    codes_set(ibufr, '#2#longitude', 6.940000000000000391e+00)
-    codes_set(ibufr, '#1#qualityOfFollowingValue', 0)
-    codes_set(ibufr, '#1#mixingRatio', 0.01)
-    codes_set(ibufr, '#1#measurementUncertaintyExpression', 0)
-    codes_set(ibufr, '#1#measurementUncertaintySignificance', 0)
-    codes_set(ibufr, '#2#mixingRatio', 0.002)
-    codes_set(ibufr, '#2#measurementUncertaintyExpression', 31)
-    codes_set(ibufr, '#2#measurementUncertaintySignificance', 31)
-    codes_set(ibufr, '#1#airTemperature', 300)
-    codes_set(ibufr, '#3#measurementUncertaintyExpression', 0)
-    codes_set(ibufr, '#3#measurementUncertaintySignificance', 0)
-    codes_set(ibufr, '#2#airTemperature', 1)
-    codes_set(ibufr, '#4#measurementUncertaintyExpression', 31)
-    codes_set(ibufr, '#4#measurementUncertaintySignificance', 31)
-    codes_set(ibufr, '#1#verticalResolution', 30)
-    # second level
-    codes_set(ibufr, '#2#height', 5000)
-    codes_set(ibufr, '#3#latitude', 4.681000000000000227e+01)
-    codes_set(ibufr, '#3#longitude', 6.940000000000000391e+00)
-    codes_set(ibufr, '#2#qualityOfFollowingValue', 0)
-    codes_set(ibufr, '#3#mixingRatio', 0.001)
-    codes_set(ibufr, '#5#measurementUncertaintyExpression', 0)
-    codes_set(ibufr, '#5#measurementUncertaintySignificance', 0)
-    codes_set(ibufr, '#4#mixingRatio', 0.002)
-    codes_set(ibufr, '#6#measurementUncertaintyExpression', 31)
-    codes_set(ibufr, '#6#measurementUncertaintySignificance', 31)
-    codes_set(ibufr, '#3#airTemperature', 273)
-    codes_set(ibufr, '#7#measurementUncertaintyExpression', 0)
-    codes_set(ibufr, '#7#measurementUncertaintySignificance', 0)
-    codes_set(ibufr, '#4#airTemperature', 1)
-    codes_set(ibufr, '#8#measurementUncertaintyExpression', 31)
-    codes_set(ibufr, '#8#measurementUncertaintySignificance', 31)
-    codes_set(ibufr, '#2#verticalResolution', 30)
+    for i in range(levels):
+        print(i)
+        codes_set(ibufr, '#1#height', data.level[i])
+        codes_set(ibufr, '#2#latitude', 4.681000000000000227e+01)
+        codes_set(ibufr, '#2#longitude', 6.940000000000000391e+00)
+        codes_set(ibufr, '#1#qualityOfFollowingValue', 0)
+        codes_set(ibufr, '#1#mixingRatio', data.hum[i]/1000)
+        codes_set(ibufr, '#1#measurementUncertaintyExpression', 0)
+        codes_set(ibufr, '#1#measurementUncertaintySignificance', 0)
+        codes_set(ibufr, '#2#mixingRatio', data.hum_U[i]/1000)
+        codes_set(ibufr, '#2#measurementUncertaintyExpression', 31)
+        codes_set(ibufr, '#2#measurementUncertaintySignificance', 31)
+        codes_set(ibufr, '#1#airTemperature', data.temp[i])
+        codes_set(ibufr, '#3#measurementUncertaintyExpression', 0)
+        codes_set(ibufr, '#3#measurementUncertaintySignificance', 0)
+        codes_set(ibufr, '#2#airTemperature', data.temp_U[i])
+        codes_set(ibufr, '#4#measurementUncertaintyExpression', 31)
+        codes_set(ibufr, '#4#measurementUncertaintySignificance', 31)
+        codes_set(ibufr, '#1#verticalResolution', data.vert_res[i])
     
     # Encode the keys back in the data section
     codes_set(ibufr, 'pack', 1)
@@ -110,8 +99,14 @@ def bufr_encode():
 
 
 def main():
+    
+    # read csv file
+    csvfile = 'ralmo20240709000000.txt'
+    # read data
+    data = pandas.read_csv(csvfile,skiprows=3,sep='|',na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
+    
     try:
-        bufr_encode()
+        bufr_encode(data)
     except CodesInternalError as err:
         traceback.print_exc(file=sys.stderr)
         return 1
