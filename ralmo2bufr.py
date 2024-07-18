@@ -43,8 +43,8 @@ def bufr_encode(data,outfile):
         301150, 301001, 5001, 6001, 7030, 
         8021, 301011, 301012, 2006, 1079, 
         1085, 8021, 4026, 116000, 31002, 
-        7007, 301021, 33021, 13002, 8092, 
-        8093, 13002, 8092, 8093, 12001, 
+        7007, 301021, 33021, 13001, 8092, 
+        8093, 13001, 8092, 8093, 12001, 
         8092, 8093, 12001, 8092, 8093, 
         10071,) # 31 values
 
@@ -77,10 +77,10 @@ def bufr_encode(data,outfile):
         codes_set(ibufr, '#'+str(i+2)+'#latitude', 4.681000000000000227e+01)
         codes_set(ibufr, '#'+str(i+2)+'#longitude', 6.940000000000000391e+00)
         codes_set(ibufr, '#'+str(i+1)+'#qualityOfFollowingValue', 0)
-        codes_set(ibufr, '#'+str(2*i+1)+'#mixingRatio', data.hum[data.index[i]]/1000)
+        codes_set(ibufr, '#'+str(2*i+1)+'#specificHumidity', data.hum[data.index[i]]/1000)
         codes_set(ibufr, '#'+str(4*i+1)+'#measurementUncertaintyExpression', 0)
         codes_set(ibufr, '#'+str(4*i+1)+'#measurementUncertaintySignificance', 0)
-        codes_set(ibufr, '#'+str(2*i+2)+'#mixingRatio', data.hum_U[data.index[i]]/1000)
+        codes_set(ibufr, '#'+str(2*i+2)+'#specificHumidity', data.hum_U[data.index[i]]/1000)
         codes_set(ibufr, '#'+str(4*i+2)+'#measurementUncertaintyExpression', 31)
         codes_set(ibufr, '#'+str(4*i+2)+'#measurementUncertaintySignificance', 31)
         codes_set(ibufr, '#'+str(2*i+1)+'#airTemperature', data.temp[data.index[i]])
