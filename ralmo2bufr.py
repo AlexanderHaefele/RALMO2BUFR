@@ -22,7 +22,7 @@ def bufr_encode(data,outfile):
     codes_set_array(ibufr, 'inputExtendedDelayedDescriptorReplicationFactor', ivalues)
     codes_set(ibufr, 'edition', 4)
     codes_set(ibufr, 'masterTableNumber', 0)
-    codes_set(ibufr, 'bufrHeaderCentre', 74)
+    codes_set(ibufr, 'bufrHeaderCentre', 215)
     codes_set(ibufr, 'bufrHeaderSubCentre', 0)
     codes_set(ibufr, 'updateSequenceNumber', 0)
     codes_set(ibufr, 'dataCategory', 2)
@@ -103,17 +103,27 @@ def bufr_encode(data,outfile):
 def main():
     
     # read csv file
-    csvfile = 'ralmo20240709060000.txt'
+    csvfile = 'ralmo20240709.txt'
     # read data
-    data = pandas.read_csv(csvfile,skiprows=3,sep='|',parse_dates={'mytime':[1]},na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
-    # remove nan's in hum
-    data = data[data.hum.notna() & data.temp.notna()]
+    data_day = pandas.read_csv(csvfile,skiprows=3,sep='|',parse_dates={'mytime':[1]},na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
+    # create time array
+    tt = pandas.date_range("2024-07-09 00:00:00","2024-07-09 23:59:00",freq="30min")
+    
+    # loop over time array
+    for i in tt:
+        data = data_day[data_day.mytime==i]
+        # continue with loop if data is empty
+        if data.hum.size==0:
+            continue
 
-    try:
-        bufr_encode(data,'ralmo20240709060000.bufr')
-    except CodesInternalError as err:
-        traceback.print_exc(file=sys.stderr)
-        return 1
+        # remove nan's in hum
+        data = data[data.hum.notna() & data.temp.notna()]
+
+        try:
+            bufr_encode(data,'ralmo'+i.strftime('%Y%m%d%H%M')+'.bufr')
+        except CodesInternalError as err:
+            traceback.print_exc(file=sys.stderr)
+            return 1
 
 
 if __name__ == "__main__":
