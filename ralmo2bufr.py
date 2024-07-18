@@ -96,14 +96,13 @@ def bufr_encode(data,outfile):
 
     outfile = open(outfile, 'wb')
     codes_write(ibufr, outfile)
-    print ("Created output BUFR file 'outfile.bufr'")
+    print ('Created output BUFR file ' + outfile.name)
     codes_release(ibufr)
 
 
 def main():
-    
     # read csv file
-    csvfile = 'ralmo20240709.txt'
+    csvfile = '/store_new/mch/msmda/RALMO/BUFR/ralmo20240709.txt'
     # read data
     data_day = pandas.read_csv(csvfile,skiprows=3,sep='|',parse_dates={'mytime':[1]},na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
     # create time array
@@ -120,7 +119,7 @@ def main():
         data = data[data.hum.notna() & data.temp.notna()]
 
         try:
-            bufr_encode(data,'ralmo'+i.strftime('%Y%m%d%H%M')+'.bufr')
+            bufr_encode(data,'/store_new/mch/msmda/RALMO/BUFR/ralmo'+i.strftime('%Y%m%d%H%M')+'.bufr')
         except CodesInternalError as err:
             traceback.print_exc(file=sys.stderr)
             return 1
