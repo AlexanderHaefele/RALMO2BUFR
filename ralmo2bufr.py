@@ -60,7 +60,7 @@ def bufr_encode(dt,data,outfile):
     codes_set(ibufr, '#1#latitude', 4.681000000000000227e+01)
     codes_set(ibufr, '#1#longitude', 6.940000000000000391e+00)
     codes_set(ibufr, 'heightOfStationGroundAboveMeanSeaLevel', 4.910000000000000000e+02)
-    codes_set(ibufr, '#1#timeSignificance', 29)
+    codes_set(ibufr, '#1#timeSignificance', 25)
     codes_set(ibufr, 'year', dt.year)
     codes_set(ibufr, 'month', dt.month)
     codes_set(ibufr, 'day', dt.day)
