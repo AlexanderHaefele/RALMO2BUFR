@@ -8,13 +8,13 @@ from eccodes import *
 import pandas
 
 
-def bufr_encode(data,outfile):
+def bufr_encode(dt,data,outfile):
     
     # set the number of levels to encode
     levels = data.hum.size
 
     # create time information
-    dt = pandas.to_datetime(data.mytime[data.index[0]])
+    dt = pandas.to_datetime(dt)
     
     # BUFR structure
     ibufr = codes_bufr_new_from_samples('BUFR4')
@@ -106,11 +106,12 @@ def main():
     # read data
     data_day = pandas.read_csv(csvfile,skiprows=3,sep='|',parse_dates={'mytime':[1]},na_values=[10000000],names=["id","termin","track_type","prof_type","type","level","hum","hum_U","vert_res","temp","temp_U","dum4909","dum 4910","dum4911","dum4912","dum4913","dum4914","dum4915"])
     # create time array
-    tt = pandas.date_range("2024-07-09 00:00:00","2024-07-09 23:59:00",freq="30min")
+    tt = pandas.date_range("2024-07-09 00:15:00","2024-07-09 23:59:00",freq="30min")
     
     # loop over time array
     for i in tt:
-        data = data_day[data_day.mytime==i]
+        # select data corresponding to i, note that time in data corresponds to "end of scan"
+        data = data_day[data_day.mytime==i+pandas.Timedelta("15min")]
         # continue with loop if data is empty
         if data.hum.size==0:
             continue
@@ -119,7 +120,7 @@ def main():
         data = data[data.hum.notna() & data.temp.notna()]
 
         try:
-            bufr_encode(data,'/store_new/mch/msmda/RALMO/BUFR/ralmo'+i.strftime('%Y%m%d%H%M')+'.bufr')
+            bufr_encode(i,data,'/store_new/mch/msmda/RALMO/BUFR/ralmo'+i.strftime('%Y%m%d%H%M')+'.bufr')
         except CodesInternalError as err:
             traceback.print_exc(file=sys.stderr)
             return 1
